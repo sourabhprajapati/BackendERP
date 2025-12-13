@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose=require('mongoose')
 const cors = require('cors');
 const connectDB = require('./config/db');
-
+const schoolinfoRoutes = require('./routes/schoolinfoRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -44,6 +44,14 @@ app.use('/api/schools', require('./routes/schoolRoutes'));
 app.use('/api/digital', require('./routes/digitalRoutes'));
 app.use('/api/sales-executive', require('./routes/salesExecutive'));
 app.use('/api/sales-executives', require('./routes/salesExecutiveRoutes'));
+app.use('/api/schoolinfo', schoolinfoRoutes);
+app.use('/api/school', require('./routes/bankDetailRoutes'));
+app.use('/api/admission', require('./routes/admissionRoutes'));
+app.use('/api/visitors', require('./routes/visitorRoutes'));
+app.use('/api/complaints', require('./routes/complaintRoutes'));
+app.use('/api/concessions', require('./routes/concessionRoutes'));
+app.use('/api/staff', require('./routes/staffRoutes'));
+app.use('/api/students', require('./routes/studentRoutes'));
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
