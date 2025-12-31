@@ -15,7 +15,11 @@ const staffSchema = new mongoose.Schema({
   experienceYears: { type: String },
   bloodGroup: { type: String },
   gender: { type: String, enum: ['Male', 'Female', 'Other'], required: true },
-  maritalStatus: { type: String, enum: ['Single', 'Married', 'Divorced'] },
+ maritalStatus: { 
+  type: String, 
+  enum: ['Single', 'Married',  'Prefer not to say',''],
+  default: null 
+},
 
   // CONTACT
   mobile: { type: String, required: true },

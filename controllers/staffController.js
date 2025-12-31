@@ -85,13 +85,67 @@ const createStaff = async (req, res) => {
   });
 };
 
+// In getStaff controller
+// controllers/staffController.js
 const getStaff = async (req, res) => {
   try {
-    const staff = await Staff.find({ schoolId: req.body.schoolId || req.query.schoolId });
-    res.json({ success: true, data: staff });
+    const schoolId = req.query.schoolId || req.body.schoolId;
+
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "School ID is required"
+      });
+    }
+
+    const staff = await Staff.find({ schoolId })
+      .select('employeeName dob mobile email') // ← only needed fields
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      data: staff,
+      count: staff.length
+    });
   } catch (error) {
+    console.error('Get staff error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching staff'
+    });
+  }
+};
+
+// ... other functions ...
+
+const updateStaff = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    // Optional: ensure schoolId matches for security
+    const staff = await Staff.findOneAndUpdate(
+      { _id: id, schoolId: updates.schoolId },
+      { $set: updates },
+      { new: true, runValidators: true }
+    );
+
+    if (!staff) {
+      return res.status(404).json({
+        success: false,
+        message: 'Staff member not found or you are not authorized'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Staff updated successfully',
+      data: staff
+    });
+  } catch (error) {
+    console.error('Update staff error:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
-module.exports = { createStaff, getStaff };
+module.exports = { createStaff, getStaff , updateStaff};

@@ -14,7 +14,7 @@ const studentSchema = new mongoose.Schema({
   fullName: String, // auto-generated
   class: { type: String, required: true },
   section: { type: String, required: true },
-  academicYear: { type: String, required: true },
+  // academicYear: { type: String, required: true },
   gender: { type: String, required: true },
   category: { type: String, default: 'General' },
   bloodGroup: String,

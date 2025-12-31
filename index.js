@@ -40,6 +40,14 @@ app.get('/', (req, res) => {
 //   }
 // });
 // Routes
+const studentDetailRoutes = require('./routes/studentdetailRoutes');
+
+
+app.use('/api/students', studentDetailRoutes);
+const classRoutes = require('./routes/classRoutes');
+const subjectRoutes = require('./routes/subjectRoutes');
+app.use('/api/subjects', subjectRoutes);
+app.use('/api/classes', classRoutes);
 app.use('/api/schools', require('./routes/schoolRoutes'));
 app.use('/api/digital', require('./routes/digitalRoutes'));
 app.use('/api/sales-executive', require('./routes/salesExecutive'));
@@ -52,6 +60,10 @@ app.use('/api/complaints', require('./routes/complaintRoutes'));
 app.use('/api/concessions', require('./routes/concessionRoutes'));
 app.use('/api/staff', require('./routes/staffRoutes'));
 app.use('/api/students', require('./routes/studentRoutes'));
+app.use('/api/registration', require('./routes/registrationRoutes'));
+const classTeacherRoutes = require('./routes/classTeacherRoutes');
+
+app.use('/api/class-teacher', classTeacherRoutes);
 // Error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
