@@ -12,16 +12,6 @@ router.post(
     { name: 'motherPhoto', maxCount: 1 },
     { name: 'guardianPhoto', maxCount: 1 },
     { name: 'documents', maxCount: 10 },
-    { name: 'tcFile', maxCount: 1 },
-    { name: 'marksheetFile', maxCount: 1 },
-    { name: 'doc_aadhaar', maxCount: 1 },
-    { name: 'doc_tc', maxCount: 1 },
-    { name: 'doc_birthCertificate', maxCount: 1 },
-    { name: 'doc_marksheet', maxCount: 1 },
-    { name: 'doc_photos', maxCount: 1 },
-    { name: 'doc_incomeCertificate', maxCount: 1 },
-    { name: 'doc_casteCertificate', maxCount: 1 },
-    { name: 'doc_medicalCertificate', maxCount: 1 },
   ]),
   studentDetailController.addStudent
 );
@@ -35,16 +25,6 @@ router.put(
     { name: 'motherPhoto', maxCount: 1 },
     { name: 'guardianPhoto', maxCount: 1 },
     { name: 'documents', maxCount: 10 },
-    { name: 'tcFile', maxCount: 1 },
-    { name: 'marksheetFile', maxCount: 1 },
-    { name: 'doc_aadhaar', maxCount: 1 },
-    { name: 'doc_tc', maxCount: 1 },
-    { name: 'doc_birthCertificate', maxCount: 1 },
-    { name: 'doc_marksheet', maxCount: 1 },
-    { name: 'doc_photos', maxCount: 1 },
-    { name: 'doc_incomeCertificate', maxCount: 1 },
-    { name: 'doc_casteCertificate', maxCount: 1 },
-    { name: 'doc_medicalCertificate', maxCount: 1 },
   ]),
   studentDetailController.updateStudent
 );
@@ -98,13 +78,11 @@ router.post('/transfer', async (req, res) => {
 /* ================= UPDATE ROLL ================= */
 router.post('/update-roll', studentDetailController.updateRollNumber);
 
-/* ================= ROLL NUMBER MANAGEMENT ================= */
-router.get('/roll-mgmt', studentDetailController.getRollMgmtStudents);
-router.post('/bulk-update-roll', studentDetailController.bulkUpdateRollNumbers);
-router.post('/toggle-roll-lock', studentDetailController.toggleRollLock);
-
 /* ================= DELETE DOCUMENT ================= */
 router.delete('/:studentId/documents/:documentIndex', studentDetailController.deleteDocument);
+
+/* ================= GET SINGLE STUDENT (LAST) ================= */
+router.get('/:id', studentDetailController.getStudentById);
 
 /* ================= GET STUDENTS BY CLASS & SECTION ================= */
 router.get('/by-class-section', async (req, res) => {
@@ -115,31 +93,18 @@ router.get('/by-class-section', async (req, res) => {
       return res.status(400).json({ message: 'className and section are required' });
     }
 
-    const StudentDetail = require('../models/StudentDetail');
-    const students = await StudentDetail.find({
-      'basic.class': className,
-      'basic.section': section,
-      status: 'active'
-    }).select('_id basic.admissionNo basic.name guardians.father.name basic.class basic.section').sort('basic.admissionNo');
+    const Student = require('../models/Student');
+    const students = await Student.find({
+      className,
+      section,
+      isActive: true
+    }).select('_id admissionNo studentName fatherName className section').sort('admissionNo');
 
-    // Transform the data to match the expected format
-    const transformedStudents = students.map(student => ({
-      _id: student._id,
-      admissionNo: student.basic.admissionNo,
-      studentName: student.basic.name,
-      fatherName: student.guardians.father.name || '',
-      className: student.basic.class,
-      section: student.basic.section
-    }));
-
-    res.json(transformedStudents);
+    res.json(students);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error fetching students', error: error.message });
   }
 });
-
-/* ================= GET SINGLE STUDENT (LAST) ================= */
-router.get('/:id', studentDetailController.getStudentById);
 
 module.exports = router;

@@ -99,7 +99,7 @@ const getStaff = async (req, res) => {
     }
 
     const staff = await Staff.find({ schoolId })
-      .select('employeeName dob mobile email') // ← only needed fields
+      .select('employeeName userType designation department dob mobile email') // ← only needed fields
       .lean();
 
     res.status(200).json({
