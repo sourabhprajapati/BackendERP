@@ -3,14 +3,16 @@ const router = express.Router();
 const {
   assignClassTeacher,
   getAssignedClassTeachers,
-    updateClassTeacherAssignment
+  updateClassTeacherAssignment,
+  deleteClassTeacherAssignment
 } = require('../controllers/classTeacherController');
 
-// Assign teacher to class
+// existing routes
 router.post('/assign', assignClassTeacher);
-
-// Get all current assignments for school
 router.get('/assignments', getAssignedClassTeachers);
 router.put('/assign/:id', updateClassTeacherAssignment);
+
+// ✅ NEW DELETE
+router.delete('/assign/:id', deleteClassTeacherAssignment);
 
 module.exports = router;

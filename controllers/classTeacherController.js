@@ -7,74 +7,89 @@ const assignClassTeacher = async (req, res) => {
   try {
     const { schoolId, className, teacherId } = req.body;
 
+    // 1️⃣ Basic validation
     if (!schoolId || !className || !teacherId) {
       return res.status(400).json({
         success: false,
-        message: 'schoolId, className, and teacherId are required'
+        message: "schoolId, className, and teacherId are required"
       });
     }
 
-    // Verify teacher exists and belongs to the school
+    // 2️⃣ Verify teacher exists
     const teacher = await Staff.findOne({
       _id: teacherId,
       schoolId,
-      userType: { $in: ['Teacher', 'Staff'] }
+      userType: { $in: ["Teacher", "Staff"] }
     });
 
     if (!teacher) {
       return res.status(404).json({
         success: false,
-        message: 'Teacher not found or does not belong to this school'
+        message: "Teacher not found or does not belong to this school"
       });
     }
 
-    // Check if class already has a teacher
-    const existing = await ClassTeacherAssignment.findOne({
+    // 3️⃣ ❌ Check if class already has a teacher
+    const existingClass = await ClassTeacherAssignment.findOne({
       schoolId,
       className,
       isActive: true
     });
 
-    if (existing) {
+    if (existingClass) {
       return res.status(400).json({
         success: false,
-        message: `Class ${className} is already assigned to another teacher`
+        message: `Class ${className} already has a class teacher`
       });
     }
 
+    // 4️⃣ ❌ Check if teacher already assigned to another class
+    const teacherAlreadyAssigned = await ClassTeacherAssignment.findOne({
+      schoolId,
+      teacherId,
+      isActive: true
+    });
+
+    if (teacherAlreadyAssigned) {
+      return res.status(400).json({
+        success: false,
+        message: "This teacher is already assigned to another class"
+      });
+    }
+
+    // 5️⃣ ✅ Create assignment
     const assignment = new ClassTeacherAssignment({
       schoolId,
       className,
       teacherId,
-      assignedBy: req.user?._id || null, // optional - if you have auth
+      assignedBy: req.user?._id || null
     });
 
     await assignment.save();
 
-    // Populate teacher info for response
     const populated = await ClassTeacherAssignment.findById(assignment._id)
-      .populate('teacherId', 'employeeName designation');
+      .populate("teacherId", "employeeName designation");
 
     res.status(201).json({
       success: true,
-      message: 'Class teacher assigned successfully',
+      message: "Class teacher assigned successfully",
       data: {
         _id: assignment._id.toString(),
         className: populated.className,
-        teacher: populated.teacherId?.employeeName || 'N/A',
-        designation: populated.teacherId?.designation || 'N/A',
-        assignedAt: populated.assignedAt
+        teacher: populated.teacherId?.employeeName,
+        designation: populated.teacherId?.designation
       }
     });
+
   } catch (error) {
-    console.error('Assign class teacher error:', error);
+    console.error("Assign class teacher error:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: "Server error"
     });
   }
 };
+
 
 const getAssignedClassTeachers = async (req, res) => {
   try {
@@ -179,9 +194,48 @@ const updateClassTeacherAssignment = async (req, res) => {
     });
   }
 };
+// DELETE (Soft Unassign) Class Teacher
+const deleteClassTeacherAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { schoolId } = req.query;
+
+    if (!id || !schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "Assignment ID and schoolId are required"
+      });
+    }
+
+    const assignment = await ClassTeacherAssignment.findOneAndUpdate(
+      { _id: id, schoolId, isActive: true },
+      { isActive: false },
+      { new: true }
+    );
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: "Assignment not found or already removed"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Class teacher unassigned successfully"
+    });
+  } catch (error) {
+    console.error("Delete assignment error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+};
 
 module.exports = {
   assignClassTeacher,
   getAssignedClassTeachers,
-  updateClassTeacherAssignment
+  updateClassTeacherAssignment,
+  deleteClassTeacherAssignment 
 };

@@ -40,8 +40,11 @@ const classTeacherAssignmentSchema = new mongoose.Schema({
 
 // Ensure only one teacher per class per school
 classTeacherAssignmentSchema.index(
-  { schoolId: 1, className: 1 },
-  { unique: true }
+  { schoolId: 1, teacherId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { isActive: true }
+  }
 );
 
 module.exports = mongoose.model('ClassTeacherAssignment', classTeacherAssignmentSchema);
